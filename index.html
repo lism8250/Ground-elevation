@@ -36,17 +36,28 @@ button{cursor:pointer}
   grid-template-columns:minmax(340px, 46%) minmax(360px, 54%);
   gap:16px;
   align-items:start;
+  height:calc(100vh - 68px);
+  overflow:hidden;
 }
 .panel{background:var(--card);border:1px solid #e5e7eb;border-radius:var(--radius)}
-/* 左側示意圖固定，不跟右側表單一起捲 */
+/* 左側示意圖永遠固定；只有右側參數區捲動 */
 .left-sticky{
-  position:sticky;
-  top:16px;
-  height:calc(100vh - 32px);
-  min-height:520px;
+  position:relative;
+  height:100%;
+  min-height:0;
   display:flex;
   flex-direction:column;
   overflow:hidden;
+}
+.right{
+  height:100%;
+  min-height:0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  padding-right:2px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
 }
 .panel-head{padding:14px 16px;border-bottom:1px solid #eef0f3}
 .panel-head h2,.section h2{font-size:16px;margin:0}
@@ -56,7 +67,6 @@ button{cursor:pointer}
 .legend{display:flex;flex-wrap:wrap;gap:8px;padding:0 14px 12px;font-size:12px;color:#4b5563}
 .legend span{display:inline-flex;align-items:center;gap:5px}
 .dot{width:10px;height:10px;border-radius:50%}
-.right{display:flex;flex-direction:column;gap:14px}
 .section{padding:15px}
 .section+.section{border-top:1px solid #eef0f3}
 label{display:block;font-size:13px;color:#374151;margin-bottom:5px}
@@ -86,33 +96,66 @@ th{background:#fafafa;color:#4b5563}
 .level-chip{font-weight:700}
 .c-ref{color:var(--ref)} .c-sill{color:var(--sill)} .c-window{color:var(--window)} .c-finish{color:var(--finish)}
 @media(max-width:760px){
-  .header{padding:10px 12px}
-  h1{font-size:17px}
+  html,body{height:100%;overflow:hidden}
+  header{height:58px}
+  .header{padding:8px 10px;height:58px}
+  h1{font-size:15px}
+  .sub{font-size:10px}
+  #resetBtn{font-size:12px;min-height:36px;padding:6px 8px}
   .app{
-    padding:10px;
-    grid-template-columns:1fr;
-    gap:10px;
+    height:calc(100vh - 58px);
+    padding:6px;
+    grid-template-columns:42% 58%;
+    gap:6px;
+    overflow:hidden;
   }
-  /* 手機改成上下排列，避免左右欄過窄；示意圖保持在最上方 */
   .left-sticky{
-    position:relative;
-    top:auto;
-    height:420px;
-    min-height:420px;
+    height:100%;
+    min-height:0;
+    border-radius:10px;
   }
-  .panel-head{padding:12px}
-  .diagram-wrap{padding:8px}
-  .right{gap:10px}
-  .section{padding:12px}
+  .right{
+    height:100%;
+    overflow-y:auto;
+    gap:6px;
+    padding-right:0;
+  }
+  .panel-head{padding:8px}
+  .panel-head h2{font-size:13px}
+  .diagram-wrap{padding:4px}
+  .legend{padding:0 6px 6px;gap:5px;font-size:9px}
+  .dot{width:7px;height:7px}
+  .section{padding:8px}
+  .section h2{font-size:13px}
+  .help{font-size:10px;line-height:1.4}
   .grid2,.grid3{grid-template-columns:1fr}
-  .point-row{grid-template-columns:1fr .8fr 42px}
-  .dim-row{
-    grid-template-columns:1fr 1fr;
-    border:1px solid #e5e7eb;border-radius:12px;padding:10px;margin-bottom:10px
+  label{font-size:10px;margin-bottom:3px}
+  input,select,.btn{
+    min-height:38px;
+    font-size:13px;
+    padding:6px 7px;
+    border-radius:8px;
   }
-  .dim-row .icon-btn{grid-column:2;justify-self:end}
-  input,select,.btn{min-height:46px;font-size:16px}
-  .big{font-size:22px}
+  .point-row{
+    grid-template-columns:1fr .8fr 34px;
+    gap:4px;
+    margin-bottom:5px
+  }
+  .dim-row{
+    grid-template-columns:1fr;
+    gap:5px;
+    border:1px solid #e5e7eb;
+    border-radius:9px;
+    padding:6px;
+    margin-bottom:7px
+  }
+  .dim-row .icon-btn{grid-column:1;justify-self:end}
+  .icon-btn{width:34px;min-height:34px;font-size:16px}
+  .finish-box{padding:7px}
+  .finish-result,.callout{font-size:11px}
+  .big{font-size:17px}
+  table{font-size:10px}
+  th,td{padding:6px 5px}
 }
 </style>
 </head>
@@ -132,7 +175,7 @@ th{background:#fafafa;color:#4b5563}
   <section class="panel left-sticky">
     <div class="panel-head">
       <h2>高程示意圖</h2>
-      <div class="help">桌機版固定在左側；右側參數可獨立向下捲動。</div>
+      
     </div>
     <div class="diagram-wrap">
       <svg id="diagram" viewBox="0 0 560 760" preserveAspectRatio="xMidYMid meet" aria-label="高程垂直示意圖"></svg>
