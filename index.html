@@ -3,31 +3,69 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>軀體圖高程換算工具 v2.0</title>
+<meta name="color-scheme" content="light dark" />
+<title>軀體圖高程換算工具 v3.0</title>
 <style>
 :root{
   --bg:#f4f6f8;
   --card:#fff;
+  --card-2:#f8fafc;
   --text:#111827;
+  --text-2:#374151;
   --muted:#6b7280;
   --border:#d8dee7;
+  --line:#e5e7eb;
+  --line-2:#eef0f3;
+  --axis:#9ca3af;
   --struct:#374151;
   --ref:#2563eb;       /* 幾米線 */
-  --sill:#d97706;      /* 台度 */
+  --sill:#d97706;      /* 台度 / 窗台 */
   --window:#059669;    /* 窗頂 */
   --finish:#7c3aed;    /* 裝修完成面 */
-  --augment:#64748b;
+  --augment:#0891b2;   /* 增築 */
   --danger:#b91c1c;
+  --warn-bg:#fffbeb;
+  --warn-border:#fde68a;
+  --warn-text:#92400e;
   --radius:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0f1216;
+    --card:#171b21;
+    --card-2:#1e242c;
+    --text:#e5e7eb;
+    --text-2:#cbd5e1;
+    --muted:#94a3b8;
+    --border:#39424e;
+    --line:#2a313a;
+    --line-2:#242b33;
+    --axis:#64748b;
+    --struct:#cbd5e1;
+    --ref:#60a5fa;
+    --sill:#fbbf24;
+    --window:#34d399;
+    --finish:#c084fc;
+    --augment:#22d3ee;
+    --danger:#f87171;
+    --warn-bg:#2a2113;
+    --warn-border:#78561b;
+    --warn-text:#fcd34d;
+  }
 }
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","Microsoft JhengHei",sans-serif}
-header{background:#fff;border-bottom:1px solid #e5e7eb}
-.header{max-width:1280px;margin:auto;padding:13px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+header{background:var(--card);border-bottom:1px solid var(--line)}
+.header{max-width:1280px;margin:auto;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 h1{font-size:19px;margin:0}
 .sub{font-size:12px;color:var(--muted);margin-top:3px}
-button,input,select{font:inherit}
+button,input,select{font:inherit;color:inherit}
 button{cursor:pointer}
+.head-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.seg button{background:var(--card);border:0;padding:8px 11px;min-height:38px;font-size:13px;color:var(--muted)}
+.seg button+button{border-left:1px solid var(--border)}
+.seg button[aria-pressed="true"]{background:var(--text);color:var(--card);font-weight:700}
 .app{
   max-width:1280px;
   margin:auto;
@@ -36,131 +74,114 @@ button{cursor:pointer}
   grid-template-columns:minmax(340px, 46%) minmax(360px, 54%);
   gap:16px;
   align-items:start;
-  height:calc(100vh - 68px);
+  height:calc(100vh - 62px);
   overflow:hidden;
 }
-.panel{background:var(--card);border:1px solid #e5e7eb;border-radius:var(--radius)}
-/* 左側示意圖永遠固定；只有右側參數區捲動 */
-.left-sticky{
-  position:relative;
-  height:100%;
-  min-height:0;
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
-}
-.right{
-  height:100%;
-  min-height:0;
-  overflow-y:auto;
-  overscroll-behavior:contain;
-  padding-right:2px;
-  display:flex;
-  flex-direction:column;
-  gap:14px;
-}
-.panel-head{padding:14px 16px;border-bottom:1px solid #eef0f3}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius)}
+/* 左側示意圖固定；只有右側參數區捲動 */
+.left-sticky{position:relative;height:100%;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.right{height:100%;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-right:2px;display:flex;flex-direction:column;gap:14px}
+.panel-head{padding:12px 16px;border-bottom:1px solid var(--line-2);display:flex;align-items:center;justify-content:space-between;gap:8px}
 .panel-head h2,.section h2{font-size:16px;margin:0}
 .help{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.5}
-.diagram-wrap{flex:1;min-height:0;padding:14px;overflow:hidden}
+.diagram-wrap{flex:1;min-height:0;padding:10px 12px;overflow:hidden}
 #diagram{width:100%;height:100%;display:block}
-.legend{display:flex;flex-wrap:wrap;gap:8px;padding:0 14px 12px;font-size:12px;color:#4b5563}
+.legend{display:flex;flex-wrap:wrap;gap:8px;padding:0 14px 12px;font-size:12px;color:var(--muted)}
 .legend span{display:inline-flex;align-items:center;gap:5px}
 .dot{width:10px;height:10px;border-radius:50%}
 .section{padding:15px}
-.section+.section{border-top:1px solid #eef0f3}
-label{display:block;font-size:13px;color:#374151;margin-bottom:5px}
+.section+.section{border-top:1px solid var(--line-2)}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+label{display:block;font-size:13px;color:var(--text-2);margin-bottom:5px}
 input,select{
-  width:100%;min-height:42px;border:1px solid var(--border);border-radius:10px;padding:9px 10px;background:#fff;color:var(--text)
+  width:100%;min-height:42px;border:1px solid var(--border);border-radius:10px;padding:9px 10px;
+  background:var(--card);color:var(--text)
 }
-input:focus,select:focus{outline:2px solid #bfdbfe;border-color:#60a5fa}
+input:focus,select:focus{outline:2px solid #60a5fa55;border-color:#60a5fa}
+input.bad{border-color:var(--danger);background:#fef2f2}
+@media (prefers-color-scheme: dark){input.bad{background:#2a1616}}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 .point-row{display:grid;grid-template-columns:1.2fr .8fr 44px;gap:8px;align-items:end;margin-bottom:8px}
-.dim-row{display:grid;grid-template-columns:1fr .7fr 1fr .7fr 44px;gap:8px;align-items:end;margin-bottom:8px}
-.icon-btn{width:44px;min-height:42px;border:1px solid #fecaca;border-radius:10px;color:var(--danger);background:#fff7f7;font-size:20px}
-.btn{border:1px solid var(--border);border-radius:10px;background:#fff;min-height:42px;padding:8px 12px;font-weight:700}
-.btn-primary{background:#111827;color:#fff;border-color:#111827}
-.callout{border-radius:12px;background:#f8fafc;border:1px solid #e2e8f0;padding:12px 13px;line-height:1.65;font-size:14px}
+.dim-card{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px;background:var(--card-2)}
+.dim-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.dim-head b{font-size:13px;color:var(--muted)}
+.icon-btn{width:44px;min-height:42px;border:1px solid var(--border);border-radius:10px;color:var(--danger);background:var(--card);font-size:20px;line-height:1}
+.icon-btn.sm{width:34px;min-height:34px;font-size:16px}
+.btn{border:1px solid var(--border);border-radius:10px;background:var(--card);min-height:42px;padding:8px 12px;font-weight:700}
+.btn.sm{min-height:34px;padding:5px 10px;font-size:12px;font-weight:600}
+.btn-primary{background:var(--text);color:var(--card);border-color:var(--text)}
+.callout{border-radius:12px;background:var(--card-2);border:1px solid var(--line);padding:12px 13px;line-height:1.65;font-size:14px}
 .big{font-size:25px;font-weight:800;margin-top:4px}
 .up{color:#047857}.down{color:#b91c1c}.same{color:#92400e}
-.finish-box{background:#faf5ff;border:1px solid #e9d5ff;border-radius:12px;padding:12px}
+@media (prefers-color-scheme: dark){.up{color:#34d399}.down{color:#f87171}.same{color:#fbbf24}}
+.finish-box{background:var(--card-2);border:1px solid var(--line);border-radius:12px;padding:12px}
 .finish-result{margin-top:10px;font-size:13px;line-height:1.65}
+.warn{background:var(--warn-bg);border:1px solid var(--warn-border);color:var(--warn-text);border-radius:10px;padding:9px 11px;font-size:12.5px;line-height:1.6;margin-top:10px}
+.warn ul{margin:4px 0 0;padding-left:18px}
 .table-wrap{overflow:auto}
 table{width:100%;border-collapse:collapse;font-size:13px}
-th,td{padding:9px 8px;border-bottom:1px solid #eef0f3;text-align:left;white-space:nowrap}
-th{background:#fafafa;color:#4b5563}
-.badge{display:inline-block;padding:2px 7px;border-radius:999px;background:#eef2f7}
-.actions{display:flex;gap:8px}
+th,td{padding:9px 8px;border-bottom:1px solid var(--line-2);text-align:left;white-space:nowrap}
+th{background:var(--card-2);color:var(--muted);position:sticky;top:0}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+tr.hi td{background:#2563eb12}
+.badge{display:inline-block;padding:2px 7px;border-radius:999px;background:var(--card-2);border:1px solid var(--line);font-size:11.5px}
 .small{font-size:12px;color:var(--muted)}
-.level-chip{font-weight:700}
-.c-ref{color:var(--ref)} .c-sill{color:var(--sill)} .c-window{color:var(--window)} .c-finish{color:var(--finish)}
+.c-ref{color:var(--ref)} .c-sill{color:var(--sill)} .c-window{color:var(--window)} .c-finish{color:var(--finish)} .c-augment{color:var(--augment)}
+.swap{display:flex;justify-content:center;margin:8px 0 0}
+#toast{
+  position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(80px);
+  background:var(--text);color:var(--card);border-radius:12px;padding:10px 14px;font-size:13px;
+  display:flex;align-items:center;gap:12px;box-shadow:0 8px 24px #0004;opacity:0;pointer-events:none;
+  transition:opacity .18s,transform .18s;z-index:50;max-width:92vw
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
+#toast button{background:transparent;border:1px solid var(--card);color:var(--card);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700}
+
+body.view-diagram .right{display:none}
+body.view-diagram .app{grid-template-columns:1fr}
+body.view-params .left-sticky{display:none}
+body.view-params .app{grid-template-columns:1fr}
+
 @media(max-width:760px){
   html,body{height:100%;overflow:hidden}
-  header{height:58px}
-  .header{padding:8px 10px;height:58px}
+  .header{padding:6px 8px;gap:6px}
   h1{font-size:15px}
   .sub{font-size:10px}
-  #resetBtn{font-size:12px;min-height:36px;padding:6px 8px}
-  .app{
-    height:calc(100vh - 58px);
-    padding:4px;
-    grid-template-columns:54% 46%;
-    gap:4px;
-    overflow:hidden;
-  }
-  .left-sticky{
-    height:100%;
-    min-height:0;
-    border-radius:10px;
-  }
-  .right{
-    height:100%;
-    overflow-y:auto;
-    gap:6px;
-    padding-right:0;
-  }
-  .panel-head{padding:6px 7px}
+  .seg button{padding:6px 8px;min-height:32px;font-size:12px}
+  .btn.sm{min-height:32px}
+  .app{height:calc(100vh - 54px);padding:4px;grid-template-columns:54% 46%;gap:4px;overflow:hidden}
+  .left-sticky{height:100%;min-height:0;border-radius:10px}
+  .right{height:100%;overflow-y:auto;gap:6px;padding-right:0}
+  .panel-head{padding:6px 8px}
   .panel-head h2{font-size:13px}
   .diagram-wrap{padding:2px;flex:1}
   .legend{padding:0 4px 4px;gap:4px;font-size:8px}
   .dot{width:6px;height:6px}
-
-  #diagram{
-    width:100%;
-    height:100%;
-  }
   .section{padding:8px}
   .section h2{font-size:13px}
   .help{font-size:10px;line-height:1.4}
-  .grid2,.grid3{grid-template-columns:1fr}
+  .grid2{grid-template-columns:1fr}
+  .grid3{grid-template-columns:1fr 1fr}
   label{font-size:10px;margin-bottom:3px}
-  input,select,.btn{
-    min-height:38px;
-    font-size:13px;
-    padding:6px 7px;
-    border-radius:8px;
-  }
-  .point-row{
-    grid-template-columns:1fr .8fr 34px;
-    gap:4px;
-    margin-bottom:5px
-  }
-  .dim-row{
-    grid-template-columns:1fr;
-    gap:5px;
-    border:1px solid #e5e7eb;
-    border-radius:9px;
-    padding:6px;
-    margin-bottom:7px
-  }
-  .dim-row .icon-btn{grid-column:1;justify-self:end}
+  input,select,.btn{min-height:38px;font-size:13px;padding:6px 7px;border-radius:8px}
+  .point-row{grid-template-columns:1fr .8fr 34px;gap:4px;margin-bottom:5px}
   .icon-btn{width:34px;min-height:34px;font-size:16px}
+  .dim-card{padding:7px;margin-bottom:7px}
   .finish-box{padding:7px}
   .finish-result,.callout{font-size:11px}
   .big{font-size:17px}
   table{font-size:10px}
   th,td{padding:6px 5px}
+}
+@media print{
+  header .head-actions,#addPointBtn,#addDimBtn,.icon-btn,.swap,#toast{display:none!important}
+  html,body{height:auto;overflow:visible;background:#fff}
+  .app{display:block;height:auto;overflow:visible;max-width:none;padding:0}
+  .left-sticky,.right{height:auto;overflow:visible;display:block}
+  .panel{break-inside:avoid;border-color:#ccc}
+  .diagram-wrap{height:620px}
+  th,td{white-space:normal}
 }
 </style>
 </head>
@@ -169,9 +190,18 @@ th{background:#fafafa;color:#4b5563}
   <div class="header">
     <div>
       <h1>軀體圖高程換算工具</h1>
-      <div class="sub">v2.0｜FL 統一高程・裝修厚度補正・手機適用</div>
+      <div class="sub">v3.0｜FL 統一高程・裝修厚度補正・自動存檔</div>
     </div>
-    <button id="resetBtn" class="btn" style="width:auto">重設範例</button>
+    <div class="head-actions">
+      <div class="seg" role="group" aria-label="版面切換">
+        <button type="button" data-view="split" aria-pressed="true">並排</button>
+        <button type="button" data-view="diagram" aria-pressed="false">圖</button>
+        <button type="button" data-view="params" aria-pressed="false">參數</button>
+      </div>
+      <button id="undoBtn" class="btn sm" type="button" title="復原 (Ctrl+Z)" disabled>↶ 復原</button>
+      <button id="redoBtn" class="btn sm" type="button" title="重做 (Ctrl+Y)" disabled>↷ 重做</button>
+      <button id="resetBtn" class="btn sm" type="button">重設範例</button>
+    </div>
   </div>
 </header>
 
@@ -180,16 +210,17 @@ th{background:#fafafa;color:#4b5563}
   <section class="panel left-sticky">
     <div class="panel-head">
       <h2>高程示意圖</h2>
-      
+      <span class="small" id="diagramInfo"></span>
     </div>
     <div class="diagram-wrap">
       <svg id="diagram" viewBox="0 0 560 760" preserveAspectRatio="xMidYMid meet" aria-label="高程垂直示意圖"></svg>
     </div>
     <div class="legend">
       <span><i class="dot" style="background:var(--ref)"></i>幾米線</span>
-      <span><i class="dot" style="background:var(--sill)"></i>台度</span>
+      <span><i class="dot" style="background:var(--sill)"></i>台度／窗台</span>
       <span><i class="dot" style="background:var(--window)"></i>窗頂</span>
       <span><i class="dot" style="background:var(--finish)"></i>裝修完成面</span>
+      <span><i class="dot" style="background:var(--augment)"></i>增築</span>
     </div>
   </section>
 
@@ -198,18 +229,22 @@ th{background:#fafafa;color:#4b5563}
     <section class="panel">
       <div class="section">
         <h2>1. 裝修厚度</h2>
-        <div class="help">有增築完成面時，裝修厚度從增築面往上加；沒有增築面時，從結構完成面往上加。</div>
+        <div class="help">裝修厚度從「裝修基準」往上加。基準預設自動選（有增築完成面就用增築面，否則用結構完成面），也可以自己指定。</div>
 
         <div class="finish-box" style="margin-top:12px">
-          <div class="grid2">
+          <div class="grid3">
             <div>
               <label for="finishThickness">裝修厚度（cm）</label>
-              <input id="finishThickness" type="number" step="0.1" min="0" value="0">
+              <input id="finishThickness" type="text" inputmode="decimal" value="0">
+            </div>
+            <div>
+              <label for="finishBase">裝修基準</label>
+              <select id="finishBase"></select>
             </div>
             <div>
               <label for="applyWindowShift">窗戶補正方式</label>
               <select id="applyWindowShift">
-                <option value="shiftBoth" selected>窗台＋窗頂一起抬高（淨高不變）</option>
+                <option value="shiftBoth">窗台＋窗頂一起抬高（淨高不變）</option>
                 <option value="topOnly">只有窗頂抬高</option>
                 <option value="none">不補正窗戶</option>
               </select>
@@ -220,22 +255,26 @@ th{background:#fafafa;color:#4b5563}
       </div>
 
       <div class="section">
-        <h2>2. 高程點</h2>
-        <div class="help">高程點是實際位置，例如：結構完成面 -6、增築完成面 +26.5、台度 +91.8、1.5 米線 +150。</div>
+        <div class="section-head">
+          <h2>2. 高程點</h2>
+          <button id="addPointBtn" class="btn sm" type="button">＋ 新增高程點</button>
+        </div>
+        <div class="help">高程點是實際位置，例如：結構完成面 -6、增築完成面 +26.5、台度 +91.8、1.5 米線 +150。數值欄可直接算式，例如 <code>26.5+65.3</code>。</div>
         <div id="points" style="margin-top:12px"></div>
-        <button id="addPointBtn" class="btn" type="button">＋ 新增高程點</button>
       </div>
 
       <div class="section">
-        <h2>3. 尺寸</h2>
-        <div class="help">尺寸本身不是高程。要指定起點與方向，例如「窗高 174，從台度向上」。</div>
+        <div class="section-head">
+          <h2>3. 尺寸</h2>
+          <button id="addDimBtn" class="btn sm" type="button">＋ 新增尺寸</button>
+        </div>
+        <div class="help">尺寸本身不是高程，要指定起點與方向，例如「窗高 174，從台度向上」。終點名稱留空會自動推斷（窗高→窗頂）。</div>
         <div id="dimensions" style="margin-top:12px"></div>
-        <button id="addDimBtn" class="btn" type="button">＋ 新增尺寸</button>
       </div>
 
       <div class="section">
         <h2>4. 任選兩點計算</h2>
-        <div class="grid2">
+        <div class="grid2" style="margin-top:10px">
           <div>
             <label for="fromSel">起點</label>
             <select id="fromSel"></select>
@@ -245,17 +284,24 @@ th{background:#fafafa;color:#4b5563}
             <select id="toSel"></select>
           </div>
         </div>
-        <div id="compareResult" class="callout" style="margin-top:12px" aria-live="polite"></div>
+        <div class="swap"><button id="swapBtn" class="btn sm" type="button">⇅ 對調</button></div>
+        <div id="compareResult" class="callout" style="margin-top:10px" aria-live="polite"></div>
       </div>
     </section>
 
     <section class="panel">
-      <div class="section">
+      <div class="panel-head">
         <h2>計算結果總表</h2>
+        <div style="display:flex;gap:6px">
+          <button id="copyBtn" class="btn sm" type="button">複製</button>
+          <button id="csvBtn" class="btn sm" type="button">CSV</button>
+          <button id="printBtn" class="btn sm" type="button">列印</button>
+        </div>
       </div>
+      <div id="warnBox"></div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>名稱</th><th>類型</th><th>FL 高程</th><th>來源 / 算式</th></tr></thead>
+          <thead><tr><th>名稱</th><th>類型</th><th>FL 高程</th><th>與下一列差</th><th>來源 / 算式</th></tr></thead>
           <tbody id="resultTable"></tbody>
         </table>
       </div>
@@ -263,373 +309,767 @@ th{background:#fafafa;color:#4b5563}
   </div>
 </main>
 
+<div id="toast"><span id="toastMsg"></span><button id="toastAction" type="button">復原</button></div>
+
 <script>
+'use strict';
 const $ = s => document.querySelector(s);
 const pointsEl = $('#points');
 const dimsEl = $('#dimensions');
+const STORE_KEY = 'bodyElevTool.v3';
 
-const makeId = () => (crypto.randomUUID ? crypto.randomUUID() : 'id_'+Math.random().toString(36).slice(2));
+const makeId = () => (crypto.randomUUID ? crypto.randomUUID() : 'id_'+Math.random().toString(36).slice(2)+Date.now().toString(36));
 
-let state = {
-  finishThickness: 0,
-  applyWindowShift: 'shiftBoth',
-  points: [
-    {id: makeId(), name:'結構完成面', value:-6},
-    {id: makeId(), name:'增築完成面', value:26.5},
-    {id: makeId(), name:'台度', value:91.8},
-    {id: makeId(), name:'結構1.5米線', value:150}
-  ],
-  dims: [
-    {id: makeId(), name:'窗高', value:174, startName:'台度', direction:'up'}
-  ]
-};
-
-function num(v){ const n=parseFloat(v); return Number.isFinite(n)?n:0; }
-function fmt(v){
-  const n=Number(v);
-  return Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/0+$/,'').replace(/\.$/,'');
+/* ---------- 預設範例 ---------- */
+function defaultState(){
+  const pStruct = {id:makeId(), name:'結構完成面', value:-6};
+  const pAug    = {id:makeId(), name:'增築完成面', value:26.5};
+  const pSill   = {id:makeId(), name:'台度',       value:91.8};
+  const pRef    = {id:makeId(), name:'結構1.5米線', value:150};
+  return {
+    finishThickness:0,
+    applyWindowShift:'shiftBoth',
+    finishBaseId:'auto',
+    points:[pStruct,pAug,pSill,pRef],
+    dims:[{id:makeId(), name:'窗高', value:174, startId:pSill.id, direction:'up', endName:''}]
+  };
 }
-function signFmt(v){ const n=Number(v); return `${n>=0?'+':''}${fmt(n)}`; }
+
+let state = defaultState();
+let ui = { view:'split', fromKey:null, toKey:null };
+let levelsCache = [];
+
+/* ---------- 數值：支援算式、全形、四捨五入 ---------- */
+function evalExpr(src){
+  let i=0;
+  const ws=()=>{ while(i<src.length && src[i]===' ') i++; };
+  function factor(){
+    ws();
+    const c=src[i];
+    if(c==='+'){ i++; return factor(); }
+    if(c==='-'){ i++; return -factor(); }
+    if(c==='('){ i++; const v=expr(); ws(); if(src[i]!==')') throw 0; i++; return v; }
+    const s=i;
+    while(i<src.length && (src[i]>='0'&&src[i]<='9' || src[i]==='.')) i++;
+    if(i===s) throw 0;
+    const n=parseFloat(src.slice(s,i));
+    if(!Number.isFinite(n)) throw 0;
+    return n;
+  }
+  function term(){
+    let v=factor();
+    for(;;){ ws();
+      if(src[i]==='*'){ i++; v*=factor(); }
+      else if(src[i]==='/'){ i++; const d=factor(); if(d===0) throw 0; v/=d; }
+      else return v;
+    }
+  }
+  function expr(){
+    let v=term();
+    for(;;){ ws();
+      if(src[i]==='+'){ i++; v+=term(); }
+      else if(src[i]==='-'){ i++; v-=term(); }
+      else return v;
+    }
+  }
+  const v=expr(); ws();
+  if(i!==src.length) throw 0;
+  if(!Number.isFinite(v)) throw 0;
+  return v;
+}
+/** 回傳數字；空字串→0；無法解析→null */
+function parseNum(raw){
+  if(raw==null) return 0;
+  let s=String(raw).trim();
+  if(!s) return 0;
+  s = s.replace(/[０-９]/g, c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0))
+       .replace(/[－ー–—−]/g,'-').replace(/＋/g,'+').replace(/[×＊]/g,'*')
+       .replace(/[÷／]/g,'/').replace(/．/g,'.').replace(/[（]/g,'(').replace(/[）]/g,')')
+       .replace(/[,，\s]/g,'');
+  if(!/^[0-9+\-*/().]+$/.test(s)) return null;
+  try{ return evalExpr(s); }catch(e){ return null; }
+}
+const r2 = n => Math.round((Number(n)+Number.EPSILON)*100)/100;
+function num(v){ const n=Number(v); return Number.isFinite(n)?n:0; }
+function fmt(v){ const n=r2(num(v)); return String(Object.is(n,-0)?0:n); }
+function signFmt(v){ const n=r2(num(v)); return `${n>=0?'+':''}${fmt(n)}`; }
 function esc(s=''){ return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
 
+/* ---------- 分類 ---------- */
 function classify(name){
-  const n=(name||'').toLowerCase();
-  if(n.includes('米線') || n.includes('100線') || n.includes('150線')) return 'ref';
-  if(n.includes('台度') || n.includes('窗台')) return 'sill';
-  if(n.includes('窗頂')) return 'window';
-  if(n.includes('裝修')) return 'finish';
-  if(n.includes('增築')) return 'augment';
+  const n=(name||'');
+  if(/米線|公尺線|米綫|100線|150線|水平基準線/.test(n)) return 'ref';
+  if(/台度|臺度|窗台|窗臺|窗底/.test(n)) return 'sill';
+  if(/窗頂|窗上/.test(n)) return 'window';
+  if(/裝修/.test(n)) return 'finish';
+  if(/增築|增建/.test(n)) return 'augment';
   return 'normal';
 }
-
 function colorFor(kind){
-  const styles=getComputedStyle(document.documentElement);
-  const map={
-    ref:styles.getPropertyValue('--ref').trim(),
-    sill:styles.getPropertyValue('--sill').trim(),
-    window:styles.getPropertyValue('--window').trim(),
-    finish:styles.getPropertyValue('--finish').trim(),
-    augment:styles.getPropertyValue('--augment').trim(),
-    normal:styles.getPropertyValue('--struct').trim()
+  const s=getComputedStyle(document.documentElement);
+  const v=s.getPropertyValue('--'+(kind==='normal'?'struct':kind)).trim();
+  return v || s.getPropertyValue('--struct').trim();
+}
+
+/* ---------- 持久化（自動存檔，只有使用者主動清除才會消失） ---------- */
+let saveTimer;
+function save(){
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify({state, ui:{view:ui.view}})); }
+    catch(e){ /* 隱私模式 / 配額滿：忽略，不影響計算 */ }
+  },250);
+}
+function load(){
+  let raw=null;
+  try{ raw=localStorage.getItem(STORE_KEY); }catch(e){ return; }
+  if(!raw) return;
+  let data;
+  try{ data=JSON.parse(raw); }catch(e){ return; }
+  const s=data && data.state;
+  if(!s || !Array.isArray(s.points)) return;
+
+  const points=s.points.filter(p=>p&&typeof p==='object').map(p=>({
+    id:p.id||makeId(), name:String(p.name??''), value:num(p.value)
+  }));
+  if(!points.length) return;
+  const byName=new Map(points.map(p=>[p.name,p.id]));
+  const dims=(Array.isArray(s.dims)?s.dims:[]).filter(d=>d&&typeof d==='object').map(d=>({
+    id:d.id||makeId(),
+    name:String(d.name??''),
+    value:num(d.value),
+    /* v2 舊檔用 startName，改用 id */
+    startId:(d.startId && points.some(p=>p.id===d.startId)) ? d.startId : (byName.get(d.startName) || points[0].id),
+    direction:d.direction==='down'?'down':'up',
+    endName:String(d.endName??'')
+  }));
+  state={
+    finishThickness:num(s.finishThickness),
+    applyWindowShift:['shiftBoth','topOnly','none'].includes(s.applyWindowShift)?s.applyWindowShift:'shiftBoth',
+    finishBaseId:(s.finishBaseId && (s.finishBaseId==='auto' || points.some(p=>p.id===s.finishBaseId))) ? s.finishBaseId : 'auto',
+    points, dims
   };
-  return map[kind] || map.normal;
+  if(data.ui && ['split','diagram','params'].includes(data.ui.view)) ui.view=data.ui.view;
 }
 
-function getPoint(name){ return state.points.find(p=>p.name===name); }
+/* ---------- 復原 / 重做 ---------- */
+const undoStack=[], redoStack=[];
+let baseline='';
+const snap = () => JSON.stringify(state);
+function commit(){
+  const now=snap();
+  if(now===baseline) return;
+  undoStack.push(baseline);
+  if(undoStack.length>60) undoStack.shift();
+  redoStack.length=0;
+  baseline=now;
+  updateUndoBtns();
+  save();
+}
+let commitTimer;
+function commitSoon(){ clearTimeout(commitTimer); commitTimer=setTimeout(commit,700); }
+/** 結構性操作前先把「打字中」的變更收成獨立的一步，復原才不會一次跳掉兩件事 */
+function beginOp(){ clearTimeout(commitTimer); commit(); }
+function applySnapshot(json){
+  state=JSON.parse(json);
+  baseline=json;
+  updateUndoBtns();
+  renderAll();
+  save();
+}
+function undo(){
+  clearTimeout(commitTimer); commit();
+  if(!undoStack.length) return;
+  redoStack.push(snap());
+  applySnapshot(undoStack.pop());
+}
+function redo(){
+  if(!redoStack.length) return;
+  undoStack.push(snap());
+  applySnapshot(redoStack.pop());
+}
+function updateUndoBtns(){
+  $('#undoBtn').disabled = undoStack.length===0;
+  $('#redoBtn').disabled = redoStack.length===0;
+}
 
+/* ---------- Toast ---------- */
+let toastTimer, toastFn=null;
+function toast(msg, actionLabel, fn){
+  $('#toastMsg').textContent=msg;
+  const btn=$('#toastAction');
+  toastFn=fn||null;
+  btn.style.display=fn?'':'none';
+  if(fn) btn.textContent=actionLabel||'復原';
+  $('#toast').classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>$('#toast').classList.remove('show'), fn?6000:2600);
+}
+$('#toastAction').addEventListener('click',()=>{
+  if(toastFn) toastFn();
+  toastFn=null;
+  $('#toast').classList.remove('show');
+});
+
+/* ---------- 查找 ---------- */
+const getPointById = id => state.points.find(p=>p.id===id) || null;
 function finishBasePoint(){
-  const augment = state.points.find(p => /增築.*完成面|增築完成面/.test(p.name));
-  if(augment) return augment;
-  return state.points.find(p => /結構.*完成面|結構完成面/.test(p.name)) || state.points[0] || null;
+  if(state.finishBaseId && state.finishBaseId!=='auto'){
+    const p=getPointById(state.finishBaseId);
+    if(p) return p;
+  }
+  return state.points.find(p=>/增築|增建/.test(p.name))
+      || state.points.find(p=>/結構/.test(p.name) && /完成面/.test(p.name))
+      || state.points.find(p=>/完成面/.test(p.name))
+      || state.points[0] || null;
 }
-
-function renderInputs(){
-  $('#finishThickness').value = state.finishThickness;
-  $('#applyWindowShift').value = state.applyWindowShift;
-
-  pointsEl.innerHTML='';
-  state.points.forEach(p=>{
-    const row=document.createElement('div');
-    row.className='point-row';
-    row.innerHTML=`
-      <div><label>名稱</label><input data-p="${p.id}" data-k="name" value="${esc(p.name)}"></div>
-      <div><label>FL 高程（cm）</label><input type="number" step="0.1" data-p="${p.id}" data-k="value" value="${p.value}"></div>
-      <button type="button" class="icon-btn" data-del-p="${p.id}" aria-label="刪除高程">×</button>`;
-    pointsEl.appendChild(row);
-  });
-
-  dimsEl.innerHTML='';
-  const opts=state.points.map(p=>`<option value="${esc(p.name)}">${esc(p.name)}</option>`).join('');
-  state.dims.forEach(d=>{
-    const row=document.createElement('div');
-    row.className='dim-row';
-    row.innerHTML=`
-      <div><label>尺寸名稱</label><input data-d="${d.id}" data-k="name" value="${esc(d.name)}"></div>
-      <div><label>尺寸（cm）</label><input type="number" step="0.1" data-d="${d.id}" data-k="value" value="${d.value}"></div>
-      <div><label>起點</label><select data-d="${d.id}" data-k="startName">${opts}</select></div>
-      <div><label>方向</label><select data-d="${d.id}" data-k="direction">
-        <option value="up">向上</option><option value="down">向下</option>
-      </select></div>
-      <button type="button" class="icon-btn" data-del-d="${d.id}" aria-label="刪除尺寸">×</button>`;
-    dimsEl.appendChild(row);
-    row.querySelector('[data-k="startName"]').value=d.startName;
-    row.querySelector('[data-k="direction"]').value=d.direction;
-  });
-
-  bindInputs();
-  calculate();
-}
-
-function bindInputs(){
-  document.querySelectorAll('[data-p]').forEach(el=>{
-    el.addEventListener('input',e=>{
-      const p=state.points.find(x=>x.id===e.target.dataset.p);
-      p[e.target.dataset.k]=e.target.dataset.k==='value'?num(e.target.value):e.target.value;
-      validateDimensionStarts();
-      calculate();
-    });
-  });
-  document.querySelectorAll('[data-d]').forEach(el=>{
-    const handler=e=>{
-      const d=state.dims.find(x=>x.id===e.target.dataset.d);
-      d[e.target.dataset.k]=e.target.dataset.k==='value'?num(e.target.value):e.target.value;
-      calculate();
-    };
-    el.addEventListener('input',handler); el.addEventListener('change',handler);
-  });
-  document.querySelectorAll('[data-del-p]').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      state.points=state.points.filter(x=>x.id!==btn.dataset.delP);
-      validateDimensionStarts();
-      renderInputs();
-    });
-  });
-  document.querySelectorAll('[data-del-d]').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      state.dims=state.dims.filter(x=>x.id!==btn.dataset.delD);
-      renderInputs();
-    });
-  });
-}
-
-function validateDimensionStarts(){
-  state.dims.forEach(d=>{
-    if(!state.points.some(p=>p.name===d.startName)) d.startName=state.points[0]?.name||'';
-  });
-}
-
 function inferEndName(name,direction){
   const n=(name||'').trim();
-  if(n.includes('窗高')) return direction==='up'?'窗頂':'窗底';
-  if(n.includes('門高')) return direction==='up'?'門頂':'門底';
-  if(n.includes('樑深')) return direction==='down'?'樑底':'樑頂';
-  return `${n||'尺寸'}終點`;
+  if(/窗高|窗戶高/.test(n)) return direction==='up'?'窗頂':'窗底';
+  if(/門高/.test(n))        return direction==='up'?'門頂':'門底';
+  if(/樑深|梁深/.test(n))   return direction==='down'?'樑底':'樑頂';
+  if(/台度|臺度/.test(n))   return '台度';
+  return `${n||'尺寸'}${direction==='up'?'頂':'底'}`;
 }
 
+/* ---------- 核心計算 ---------- */
+/**
+ * 裝修厚度 t 抬高地坪。窗構件依模式一起位移：
+ *  shiftBoth：窗台(sill)、窗頂(window) 都 +t（淨高不變）
+ *  topOnly  ：只有窗頂 +t
+ *  none     ：都不動
+ * 由尺寸推出的終點，若本身是窗構件，補正到「目標位移 − 起點已含位移」，避免重複加。
+ */
+function shiftFor(kind, t, mode){
+  if(kind==='sill')   return mode==='shiftBoth' ? t : 0;
+  if(kind==='window') return (mode==='shiftBoth'||mode==='topOnly') ? t : 0;
+  return 0;
+}
 function buildLevels(){
-  const t=num(state.finishThickness);
+  const t=r2(num(state.finishThickness));
+  const mode=state.applyWindowShift;
   const levels=[];
-  const windowShift = state.applyWindowShift;
 
-  // 原始高程點；若選擇「窗台＋窗頂一起抬高」，台度顯示補正後高程
   state.points.forEach(p=>{
-    let elevation=num(p.value);
-    let source='直接輸入';
-    if(classify(p.name)==='sill' && windowShift==='shiftBoth' && t!==0){
-      elevation += t;
-      source=`原台度 ${signFmt(p.value)} + 裝修 ${fmt(t)}`;
-    }
+    const kind=classify(p.name);
+    const sh=shiftFor(kind,t,mode);
     levels.push({
       key:'p_'+p.id,
       name:p.name||'未命名高程',
-      elevation,
+      elevation:r2(num(p.value)+sh),
       type:'高程點',
-      source,
-      kind:classify(p.name)
+      source: sh ? `原始 ${signFmt(p.value)} ＋裝修 ${fmt(sh)}` : '直接輸入',
+      kind
     });
   });
 
-  // 裝修完成面
   const base=finishBasePoint();
   if(base && t!==0){
     levels.push({
       key:'finish',
       name:'裝修完成面',
-      elevation:num(base.value)+t,
+      elevation:r2(num(base.value)+t),
       type:'裝修',
-      source:`${base.name} ${signFmt(base.value)} + ${fmt(t)}`,
+      source:`${base.name||'基準'} ${signFmt(base.value)} ＋ ${fmt(t)}`,
       kind:'finish'
     });
   }
 
-  // 尺寸換算
   state.dims.forEach(d=>{
-    const rawStart=getPoint(d.startName);
-    if(!rawStart) return;
+    const start=getPointById(d.startId);
+    if(!start) return;
+    const startKind=classify(start.name);
+    const startSh=shiftFor(startKind,t,mode);
+    const startElev=r2(num(start.value)+startSh);
+    const len=num(d.value);
+    const endName=(d.endName||'').trim() || inferEndName(d.name,d.direction);
+    const endKind=classify(endName);
 
-    let startElevation=num(rawStart.value);
-    const startIsSill=classify(rawStart.name)==='sill';
-    if(startIsSill && windowShift==='shiftBoth') startElevation += t;
+    let elevation=r2(startElev + (d.direction==='up'?len:-len));
+    let source=`${start.name||'起點'} ${signFmt(startElev)} ${d.direction==='up'?'＋':'－'} ${fmt(len)}`;
 
-    let elevation=startElevation + (d.direction==='up'?num(d.value):-num(d.value));
-    let source=`${rawStart.name} ${signFmt(startElevation)} ${d.direction==='up'?'+':'-'} ${fmt(d.value)}`;
-
-    // topOnly：只有由窗高得到的窗頂再加裝修厚度
-    const endName=inferEndName(d.name,d.direction);
-    if(endName==='窗頂' && windowShift==='topOnly'){
-      elevation += t;
-      source += ` + 裝修 ${fmt(t)}`;
+    if(endKind==='window' || endKind==='sill'){
+      const extra=r2(shiftFor(endKind,t,mode)-startSh);
+      if(extra!==0){
+        elevation=r2(elevation+extra);
+        source += ` ${extra>0?'＋':'－'} 裝修補正 ${fmt(Math.abs(extra))}`;
+      }
     }
-
-    levels.push({
-      key:'d_'+d.id,
-      name:endName,
-      elevation,
-      type:'尺寸換算',
-      source,
-      kind:classify(endName)
-    });
+    levels.push({ key:'d_'+d.id, name:endName, elevation, type:'尺寸換算', source, kind:endKind });
   });
 
+  levels.sort((a,b)=> b.elevation-a.elevation || a.name.localeCompare(b.name,'zh-Hant'));
   return levels;
 }
 
-function renderFinishInfo(levels){
-  const t=num(state.finishThickness);
-  const base=finishBasePoint();
-  const box=$('#finishResult');
-  if(!base){
-    box.innerHTML='找不到「結構完成面」或「增築完成面」，無法建立裝修完成面。';
-    return;
-  }
-  const finishElev=num(base.value)+t;
-  let windowText='';
-  if(state.applyWindowShift==='shiftBoth'){
-    windowText='窗台與窗頂會一起抬高相同厚度，因此窗戶淨高維持不變。';
-  }else if(state.applyWindowShift==='topOnly'){
-    windowText='只有窗頂抬高，窗戶淨高會增加裝修厚度。';
-  }else{
-    windowText='裝修厚度只建立完成面，不補正窗戶位置。';
-  }
-  box.innerHTML=`
-    裝修基準：<strong>${esc(base.name)}</strong> FL ${signFmt(base.value)}<br>
-    裝修完成面：<strong class="c-finish">FL ${signFmt(finishElev)}</strong><br>
-    ${windowText}`;
+function collectWarnings(){
+  const w=[];
+  const seen=new Map();
+  state.points.forEach(p=>{
+    const n=(p.name||'').trim();
+    if(!n){ if(!w.includes('有高程點沒有名稱。')) w.push('有高程點沒有名稱。'); return; }
+    seen.set(n,(seen.get(n)||0)+1);
+  });
+  seen.forEach((c,n)=>{ if(c>1) w.push(`高程點名稱「${n}」重複 ${c} 次，表格與示意圖會分不出來。`); });
+  state.dims.forEach(d=>{ if(!getPointById(d.startId)) w.push(`尺寸「${d.name||'未命名'}」的起點已被刪除，未列入計算。`); });
+  if(!state.points.length) w.push('目前沒有任何高程點。');
+  if(r2(num(state.finishThickness))<0) w.push('裝修厚度是負值，確認是不是打錯。');
+  return w;
 }
 
-function calculate(){
-  state.finishThickness=num($('#finishThickness').value);
-  state.applyWindowShift=$('#applyWindowShift').value;
-  const levels=buildLevels().sort((a,b)=>b.elevation-a.elevation);
-  renderFinishInfo(levels);
+/* ---------- 輸入區渲染（結構變動時才呼叫） ---------- */
+function pointOptions(selectedId){
+  return state.points.map(p=>
+    `<option value="${esc(p.id)}"${p.id===selectedId?' selected':''}>${esc(p.name||'(未命名)')}</option>`
+  ).join('');
+}
+function renderPoints(){
+  pointsEl.replaceChildren();
+  if(!state.points.length){
+    const d=document.createElement('div'); d.className='small'; d.textContent='尚無高程點，按上方「＋ 新增高程點」。';
+    pointsEl.appendChild(d); return;
+  }
+  state.points.forEach(p=>{
+    const row=document.createElement('div');
+    row.className='point-row';
+    row.innerHTML=`
+      <div><label>名稱</label><input data-p="${p.id}" data-k="name" value="${esc(p.name)}" placeholder="例：台度"></div>
+      <div><label>FL 高程（cm）</label><input data-p="${p.id}" data-k="value" type="text" inputmode="decimal" value="${esc(fmt(p.value))}"></div>
+      <button type="button" class="icon-btn" data-del-p="${p.id}" aria-label="刪除高程點">×</button>`;
+    pointsEl.appendChild(row);
+  });
+}
+function renderDims(){
+  dimsEl.replaceChildren();
+  if(!state.dims.length){
+    const d=document.createElement('div'); d.className='small'; d.textContent='尚無尺寸，按上方「＋ 新增尺寸」。';
+    dimsEl.appendChild(d); return;
+  }
+  state.dims.forEach((d,i)=>{
+    const card=document.createElement('div');
+    card.className='dim-card';
+    card.innerHTML=`
+      <div class="dim-head"><b>尺寸 ${i+1}</b>
+        <button type="button" class="icon-btn sm" data-del-d="${d.id}" aria-label="刪除尺寸">×</button></div>
+      <div class="grid3">
+        <div><label>尺寸名稱</label><input data-d="${d.id}" data-k="name" value="${esc(d.name)}" placeholder="例：窗高"></div>
+        <div><label>尺寸（cm）</label><input data-d="${d.id}" data-k="value" type="text" inputmode="decimal" value="${esc(fmt(d.value))}"></div>
+        <div><label>起點</label><select data-d="${d.id}" data-k="startId">${pointOptions(d.startId)}</select></div>
+        <div><label>方向</label><select data-d="${d.id}" data-k="direction">
+          <option value="up"${d.direction==='up'?' selected':''}>向上</option>
+          <option value="down"${d.direction==='down'?' selected':''}>向下</option>
+        </select></div>
+        <div style="grid-column:span 2"><label>終點名稱（留空自動）</label>
+          <input data-d="${d.id}" data-k="endName" value="${esc(d.endName||'')}" placeholder="${esc(inferEndName(d.name,d.direction))}"></div>
+      </div>`;
+    dimsEl.appendChild(card);
+  });
+}
+/** 高程點改名／增刪後，就地更新所有下拉選單，不重建輸入框（保住游標） */
+function refreshPointSelects(){
+  dimsEl.querySelectorAll('select[data-k="startId"]').forEach(sel=>{
+    const d=state.dims.find(x=>x.id===sel.dataset.d);
+    if(!d) return;
+    sel.innerHTML=pointOptions(d.startId);
+    sel.value=d.startId;
+  });
+  const fb=$('#finishBase');
+  const auto=finishBasePoint();
+  fb.innerHTML=`<option value="auto">自動（${esc(auto?auto.name||'未命名':'無')}）</option>`+pointOptions(state.finishBaseId);
+  fb.value = state.finishBaseId==='auto' ? 'auto' : (getPointById(state.finishBaseId)?state.finishBaseId:'auto');
+  dimsEl.querySelectorAll('input[data-k="endName"]').forEach(inp=>{
+    const d=state.dims.find(x=>x.id===inp.dataset.d);
+    if(d) inp.placeholder=inferEndName(d.name,d.direction);
+  });
+}
+function renderAll(){
+  $('#finishThickness').value=fmt(state.finishThickness);
+  $('#applyWindowShift').value=state.applyWindowShift;
+  renderPoints();
+  renderDims();
+  refreshPointSelects();
+  refresh();
+}
+
+/* ---------- 事件委派：打字不重建 DOM，游標不跳 ---------- */
+function markValid(el, ok){ el.classList.toggle('bad', !ok); }
+
+pointsEl.addEventListener('input', e=>{
+  const el=e.target; const id=el.dataset.p; if(!id) return;
+  const p=state.points.find(x=>x.id===id); if(!p) return;
+  if(el.dataset.k==='value'){
+    const n=parseNum(el.value);
+    markValid(el, n!==null);
+    if(n===null) return;         // 解析失敗保留上次數值，不清空使用者輸入
+    p.value=r2(n);
+  }else{
+    p.name=el.value;
+    refreshPointSelects();
+  }
+  commitSoon(); refresh();
+});
+pointsEl.addEventListener('click', e=>{
+  const btn=e.target.closest('[data-del-p]'); if(!btn) return;
+  const id=btn.dataset.delP;
+  const idx=state.points.findIndex(p=>p.id===id); if(idx<0) return;
+  beginOp();
+  const removed=state.points[idx];
+  const orphan=state.dims.filter(d=>d.startId===id);
+  state.points.splice(idx,1);
+  commit(); renderAll();
+  toast(`已刪除「${removed.name||'未命名'}」${orphan.length?`（${orphan.length} 個尺寸失去起點）`:''}`,'復原',undo);
+});
+
+dimsEl.addEventListener('input', onDimChange);
+dimsEl.addEventListener('change', onDimChange);
+function onDimChange(e){
+  const el=e.target; const id=el.dataset.d; if(!id) return;
+  const d=state.dims.find(x=>x.id===id); if(!d) return;
+  const k=el.dataset.k;
+  if(k==='value'){
+    const n=parseNum(el.value);
+    markValid(el, n!==null);
+    if(n===null) return;
+    d.value=r2(n);
+  }else{
+    d[k]=el.value;
+    if(k==='name'||k==='direction') refreshPointSelects();
+  }
+  commitSoon(); refresh();
+}
+dimsEl.addEventListener('click', e=>{
+  const btn=e.target.closest('[data-del-d]'); if(!btn) return;
+  const idx=state.dims.findIndex(d=>d.id===btn.dataset.delD); if(idx<0) return;
+  beginOp();
+  const removed=state.dims[idx];
+  state.dims.splice(idx,1);
+  commit(); renderAll();
+  toast(`已刪除尺寸「${removed.name||'未命名'}」`,'復原',undo);
+});
+
+$('#finishThickness').addEventListener('input', e=>{
+  const n=parseNum(e.target.value);
+  markValid(e.target, n!==null);
+  if(n===null) return;
+  state.finishThickness=r2(n);
+  commitSoon(); refresh();
+});
+$('#applyWindowShift').addEventListener('change', e=>{
+  beginOp(); state.applyWindowShift=e.target.value; commit(); refresh();
+});
+$('#finishBase').addEventListener('change', e=>{
+  beginOp(); state.finishBaseId=e.target.value; commit(); refreshPointSelects(); refresh();
+});
+
+$('#addPointBtn').addEventListener('click', ()=>{
+  beginOp();
+  state.points.push({id:makeId(), name:'新高程', value:0});
+  commit(); renderAll();
+  const last=pointsEl.querySelector('.point-row:last-child input');
+  if(last){ last.focus(); last.select(); }
+});
+$('#addDimBtn').addEventListener('click', ()=>{
+  if(!state.points.length){ toast('請先新增至少一個高程點作為起點'); return; }
+  beginOp();
+  state.dims.push({id:makeId(), name:'新尺寸', value:0, startId:state.points[0].id, direction:'up', endName:''});
+  commit(); renderAll();
+  const last=dimsEl.querySelector('.dim-card:last-child input');
+  if(last){ last.focus(); last.select(); }
+});
+$('#resetBtn').addEventListener('click', ()=>{
+  if(!confirm('重設為預設範例？目前所有高程點與尺寸都會被取代（可用「復原」救回）。')) return;
+  beginOp();
+  state=defaultState();
+  state.finishBaseId='auto';
+  commit(); renderAll();
+  toast('已重設為預設範例','復原',undo);
+});
+$('#undoBtn').addEventListener('click', undo);
+$('#redoBtn').addEventListener('click', redo);
+$('#swapBtn').addEventListener('click', ()=>{
+  const a=ui.fromKey; ui.fromKey=ui.toKey; ui.toKey=a;
+  refresh();
+});
+document.addEventListener('keydown', e=>{
+  if(!(e.ctrlKey||e.metaKey)) return;
+  const k=e.key.toLowerCase();
+  if(k==='z' && !e.shiftKey){ e.preventDefault(); undo(); }
+  else if(k==='y' || (k==='z'&&e.shiftKey)){ e.preventDefault(); redo(); }
+});
+
+/* 版面切換 */
+document.querySelectorAll('.seg button').forEach(b=>{
+  b.addEventListener('click',()=>setView(b.dataset.view));
+});
+function setView(v){
+  ui.view=v;
+  document.body.classList.remove('view-split','view-diagram','view-params');
+  document.body.classList.add('view-'+v);
+  document.querySelectorAll('.seg button').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.view===v)));
+  save();
+  requestAnimationFrame(()=>renderDiagram(levelsCache));
+}
+
+/* ---------- 主更新 ---------- */
+function refresh(){
+  const levels=buildLevels();
+  levelsCache=levels;
+  renderFinishInfo();
+  renderWarnings();
+  renderSelectors(levels);
   renderTable(levels);
   renderDiagram(levels);
-  renderSelectors(levels);
+  renderCompare(levels);
+}
+
+function renderFinishInfo(){
+  const t=r2(num(state.finishThickness));
+  const base=finishBasePoint();
+  const box=$('#finishResult');
+  if(!base){ box.textContent='尚未有可用的裝修基準點。'; return; }
+  const finishElev=r2(num(base.value)+t);
+  const windowText =
+    state.applyWindowShift==='shiftBoth' ? '窗台與窗頂一起抬高相同厚度，窗戶淨高維持不變。' :
+    state.applyWindowShift==='topOnly'   ? '只有窗頂抬高，窗戶淨高會增加裝修厚度。' :
+                                           '裝修厚度只建立完成面，不補正窗戶位置。';
+  box.innerHTML=
+    `裝修基準：<strong>${esc(base.name||'未命名')}</strong> FL ${signFmt(base.value)}<br>`+
+    `裝修完成面：<strong class="c-finish">FL ${signFmt(finishElev)}</strong>`+
+    (t===0?'<span class="small">（厚度 0，未加入總表）</span>':'')+`<br>${windowText}`;
+}
+
+function renderWarnings(){
+  const w=collectWarnings();
+  const box=$('#warnBox');
+  if(!w.length){ box.replaceChildren(); return; }
+  box.innerHTML=`<div class="warn" style="margin:10px 12px 0">⚠ 檢查：<ul>${w.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`;
 }
 
 function renderTable(levels){
-  const tb=$('#resultTable'); tb.innerHTML='';
-  levels.forEach(x=>{
-    const cls='c-'+x.kind;
+  const tb=$('#resultTable'); tb.replaceChildren();
+  if(!levels.length){
+    tb.innerHTML='<tr><td colspan="5" class="small">尚無資料</td></tr>'; return;
+  }
+  levels.forEach((x,i)=>{
+    const gap = i<levels.length-1 ? r2(x.elevation-levels[i+1].elevation) : null;
     const tr=document.createElement('tr');
-    tr.innerHTML=`
-      <td><strong class="${cls}">${esc(x.name)}</strong></td>
-      <td><span class="badge">${esc(x.type)}</span></td>
-      <td>FL ${signFmt(x.elevation)}</td>
-      <td>${esc(x.source)}</td>`;
+    if(x.key===ui.fromKey || x.key===ui.toKey) tr.className='hi';
+    tr.innerHTML=
+      `<td><strong class="c-${x.kind}">${esc(x.name)}</strong></td>`+
+      `<td><span class="badge">${esc(x.type)}</span></td>`+
+      `<td class="num">FL ${signFmt(x.elevation)}</td>`+
+      `<td class="num">${gap===null?'—':fmt(gap)}</td>`+
+      `<td>${esc(x.source)}</td>`;
     tb.appendChild(tr);
   });
 }
 
+/* ---------- 示意圖 ---------- */
 function svgEl(tag,attrs={},text=''){
   const el=document.createElementNS('http://www.w3.org/2000/svg',tag);
-  Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));
-  if(text) el.textContent=text;
+  for(const k in attrs) el.setAttribute(k,attrs[k]);
+  if(text!=='') el.textContent=text;
   return el;
 }
-
+function textW(s,size){
+  let w=0;
+  for(const ch of String(s)) w += /[⺀-鿿＀-￯]/.test(ch) ? size : size*0.56;
+  return w;
+}
+/** 標籤防重疊：先往下推，超出底部再往上推，最後夾在範圍內 */
+function spread(ys,minGap,top,bottom){
+  const n=ys.length; if(!n) return [];
+  const gap=Math.min(minGap,(bottom-top)/Math.max(1,n-1));
+  const out=ys.slice();
+  for(let i=1;i<n;i++) if(out[i]-out[i-1]<gap) out[i]=out[i-1]+gap;
+  if(out[n-1]>bottom){
+    out[n-1]=bottom;
+    for(let i=n-2;i>=0;i--) if(out[i+1]-out[i]<gap) out[i]=out[i+1]-gap;
+  }
+  if(out[0]<top){
+    out[0]=top;
+    for(let i=1;i<n;i++) if(out[i]-out[i-1]<gap) out[i]=out[i-1]+gap;
+  }
+  return out;
+}
 function renderDiagram(levels){
-  const svg=$('#diagram'); svg.innerHTML='';
-  if(!levels.length) return;
+  const svg=$('#diagram'); svg.replaceChildren();
+  $('#diagramInfo').textContent='';
+  if(!levels || !levels.length) return;
 
-  const mobile = window.matchMedia('(max-width:760px)').matches;
-  const W=mobile ? 430 : 560;
-  const H=760, padTop=48, padBottom=48;
-  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-  const max=levels[0].elevation,min=levels[levels.length-1].elevation;
-  const span=Math.max(1,max-min);
-  const yOf=e=>padTop+((max-e)/span)*(H-padTop-padBottom);
+  const wrap=svg.parentElement;
+  if(!wrap.clientWidth || !wrap.clientHeight) return;   // 被隱藏（切到參數頁）時不畫
+  /* viewBox 直接對應容器像素：1 單位 = 1 CSS px，字級不會被縮放 */
+  const W = Math.round(wrap.clientWidth);
+  const H = Math.round(wrap.clientHeight);
+  const narrow = W < 420;
+  const padTop=Math.min(40,H*0.06), padBottom=Math.min(40,H*0.06);
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
 
-  const axisX = mobile ? 34 : 85;
-  const lineEnd = mobile ? 405 : 510;
-  const labelX = mobile ? 45 : 98;
-  const measureX = mobile ? 330 : 455;
-  const measureTextX = mobile ? 340 : 467;
-  const nameSize = mobile ? 21 : 16;
-  const elevSize = mobile ? 18 : 14;
-  const diffSize = mobile ? 16 : 13;
+  const cs=getComputedStyle(document.documentElement);
+  const cAxis=cs.getPropertyValue('--axis').trim();
+  const cText=cs.getPropertyValue('--text-2').trim();
+  const cCard=cs.getPropertyValue('--card').trim();
+  const cRef =cs.getPropertyValue('--ref').trim();
 
-  svg.appendChild(svgEl('line',{x1:axisX,y1:28,x2:axisX,y2:H-28,stroke:'#9ca3af','stroke-width':mobile?'3':'2'}));
+  const max=levels[0].elevation, min=levels[levels.length-1].elevation;
+  const span=max-min;
+  const top=padTop, bottom=H-padBottom;
+  const yOf = e => span<=0 ? (top+bottom)/2 : top+((max-e)/span)*(bottom-top);
 
+  const axisX     = narrow ? 22 : 40;
+  const nameSize  = narrow ? 13 : 15;
+  const elevSize  = narrow ? 11 : 13;
+  const diffSize  = narrow ? 10.5 : 12;
+  /* 右側間距欄；寬度不夠就整欄省略 */
+  const measureW  = narrow ? 56 : 78;
+  const showMeasure = W - axisX > (narrow?150:240);
+  const measureX  = showMeasure ? W - measureW : W;
+  const lineEnd   = showMeasure ? measureX - (narrow?8:14) : W - 6;
+  const labelX    = axisX + (narrow?7:10);
+
+  $('#diagramInfo').textContent=`共 ${levels.length} 項｜總落差 ${fmt(span)} cm`;
+
+  /* 比較區間底色 */
+  const a=levels.find(l=>l.key===ui.fromKey), b=levels.find(l=>l.key===ui.toKey);
+  if(a && b && a.key!==b.key){
+    const y1=Math.min(yOf(a.elevation),yOf(b.elevation));
+    const y2=Math.max(yOf(a.elevation),yOf(b.elevation));
+    if(y2-y1>1){
+      svg.appendChild(svgEl('rect',{x:axisX,y:y1,width:W-axisX-4,height:y2-y1,fill:cRef,opacity:'0.08'}));
+      svg.appendChild(svgEl('text',{x:lineEnd-4,y:(y1+y2)/2-4,fill:cRef,'font-size':diffSize+1,'font-weight':'700','text-anchor':'end'},
+        `區間 ${fmt(Math.abs(b.elevation-a.elevation))} cm`));
+    }
+  }
+
+  /* 垂直軸 */
+  svg.appendChild(svgEl('line',{x1:axisX,y1:Math.max(6,top-16),x2:axisX,y2:Math.min(H-6,bottom+16),
+    stroke:cAxis,'stroke-width':'2'}));
+
+  /* 高程線 */
+  const ys=levels.map(l=>yOf(l.elevation));
   levels.forEach((x,i)=>{
-    const y=yOf(x.elevation);
-    const color=colorFor(x.kind);
-    svg.appendChild(svgEl('line',{x1:axisX,y1:y,x2:lineEnd,y2:y,stroke:color,'stroke-width':x.kind==='ref'||x.kind==='sill'?(mobile?6:4):(mobile?4:3)}));
-    svg.appendChild(svgEl('circle',{cx:axisX,cy:y,r:mobile?8:6,fill:color}));
-    svg.appendChild(svgEl('text',{x:labelX,y:y-10,fill:color,'font-size':nameSize,'font-weight':'700'},x.name));
-    svg.appendChild(svgEl('text',{x:labelX,y:y+18,fill:'#374151','font-size':elevSize,'font-weight':mobile?'600':'400'},`FL ${signFmt(x.elevation)}`));
+    const y=ys[i], color=colorFor(x.kind);
+    const strong = x.kind==='ref'||x.kind==='sill';
+    svg.appendChild(svgEl('line',{x1:axisX,y1:y,x2:lineEnd,y2:y,stroke:color,
+      'stroke-width':strong?3.5:2.25,'stroke-linecap':'round'}));
+    svg.appendChild(svgEl('circle',{cx:axisX,cy:y,r:narrow?4.5:5.5,fill:color}));
+  });
 
-    if(i<levels.length-1){
-      const y2=yOf(levels[i+1].elevation);
-      const mid=(y+y2)/2;
-      const diff=x.elevation-levels[i+1].elevation;
-      svg.appendChild(svgEl('line',{x1:measureX,y1:y+8,x2:measureX,y2:y2-8,stroke:'#9ca3af','stroke-width':mobile?'2':'1.5','stroke-dasharray':'5 5'}));
-      svg.appendChild(svgEl('text',{x:measureTextX,y:mid+5,fill:'#374151','font-size':diffSize,'font-weight':mobile?'600':'400'},`${fmt(diff)} cm`));
+  /* 相鄰間距（只在畫得下時標） */
+  for(let i=0;showMeasure && i<levels.length-1;i++){
+    const y1=ys[i], y2=ys[i+1];
+    if(y2-y1<14) continue;
+    const diff=r2(levels[i].elevation-levels[i+1].elevation);
+    svg.appendChild(svgEl('line',{x1:measureX,y1:y1+5,x2:measureX,y2:y2-5,stroke:cAxis,
+      'stroke-width':narrow?'2':'1.5','stroke-dasharray':'5 5'}));
+    svg.appendChild(svgEl('text',{x:measureX+7,y:(y1+y2)/2+4,fill:cText,'font-size':diffSize},`${fmt(diff)} cm`));
+  }
+
+  /* 文字標籤：防重疊 + 底色 + 引線。放不下兩行就併成一行 */
+  const twoLineGap = nameSize+elevSize+9;
+  const twoLine = levels.length*twoLineGap <= (bottom-top)+twoLineGap;
+  const minGap = twoLine ? twoLineGap : nameSize+4;
+  const ly=spread(ys.slice(),minGap,top,bottom);
+  const maxLabelW = Math.max(60, lineEnd-labelX+ (showMeasure?0:4));
+  levels.forEach((x,i)=>{
+    const y=ys[i], yl=ly[i], color=colorFor(x.kind);
+    const elevText=`FL ${signFmt(x.elevation)}`;
+    if(Math.abs(yl-y)>2){
+      svg.appendChild(svgEl('path',{
+        d:`M ${axisX+2} ${y} L ${labelX-4} ${yl - (twoLine?6:4)}`,
+        stroke:color,'stroke-width':'1',fill:'none',opacity:'0.55','stroke-dasharray':'3 3'}));
+    }
+    if(twoLine){
+      const w=Math.min(maxLabelW, Math.max(textW(x.name,nameSize), textW(elevText,elevSize))+10);
+      svg.appendChild(svgEl('rect',{x:labelX-5,y:yl-nameSize-4,width:w,height:nameSize+elevSize+11,
+        rx:6,fill:cCard,opacity:'0.85'}));
+      svg.appendChild(svgEl('text',{x:labelX,y:yl-2,fill:color,'font-size':nameSize,'font-weight':'700'},x.name));
+      svg.appendChild(svgEl('text',{x:labelX,y:yl+elevSize+3,fill:cText,'font-size':elevSize},elevText));
+    }else{
+      const s=`${x.name} ${elevText}`;
+      svg.appendChild(svgEl('rect',{x:labelX-5,y:yl-nameSize+2,width:Math.min(maxLabelW,textW(s,elevSize)+10),
+        height:nameSize+3,rx:5,fill:cCard,opacity:'0.85'}));
+      svg.appendChild(svgEl('text',{x:labelX,y:yl+3,fill:color,'font-size':elevSize,'font-weight':'700'},s));
     }
   });
 }
 
+/* ---------- 兩點比較 ---------- */
 function renderSelectors(levels){
-  const from=$('#fromSel'),to=$('#toSel');
-  const prevFrom=from.value,prevTo=to.value;
-  const opts=levels.map((x,i)=>`<option value="${i}">${esc(x.name)}｜FL ${signFmt(x.elevation)}</option>`).join('');
-  from.innerHTML=opts;to.innerHTML=opts;
-  if(levels.length>1){
-    from.value=(prevFrom!=='' && levels[Number(prevFrom)])?prevFrom:String(levels.length-1);
-    to.value=(prevTo!=='' && levels[Number(prevTo)])?prevTo:'0';
+  const from=$('#fromSel'), to=$('#toSel');
+  const opts=levels.map(x=>`<option value="${esc(x.key)}">${esc(x.name)}｜FL ${signFmt(x.elevation)}</option>`).join('');
+  from.innerHTML=opts; to.innerHTML=opts;
+  if(!levels.length){ ui.fromKey=ui.toKey=null; return; }
+  const has=k=>levels.some(l=>l.key===k);
+  if(!has(ui.fromKey)) ui.fromKey=levels[levels.length-1].key;   // 預設最低
+  if(!has(ui.toKey))   ui.toKey=levels[0].key;                   // 預設最高
+  if(ui.fromKey===ui.toKey && levels.length>1){                   // 從空白建起時避免兩邊卡同一項
+    ui.fromKey=levels[levels.length-1].key; ui.toKey=levels[0].key;
   }
-  const update=()=>renderCompare(levels);
-  from.onchange=update;to.onchange=update;renderCompare(levels);
+  from.value=ui.fromKey; to.value=ui.toKey;
+  from.onchange=()=>{ ui.fromKey=from.value; renderTable(levels); renderDiagram(levels); renderCompare(levels); };
+  to.onchange  =()=>{ ui.toKey=to.value;   renderTable(levels); renderDiagram(levels); renderCompare(levels); };
 }
-
 function renderCompare(levels){
   const box=$('#compareResult');
-  if(!levels.length){box.textContent='尚無資料';return}
-  const a=levels[Number($('#fromSel').value)]||levels[0];
-  const b=levels[Number($('#toSel').value)]||levels[0];
-  const diff=b.elevation-a.elevation;
+  if(!levels.length){ box.textContent='尚無資料'; return; }
+  const a=levels.find(l=>l.key===ui.fromKey)||levels[levels.length-1];
+  const b=levels.find(l=>l.key===ui.toKey)||levels[0];
+  const diff=r2(b.elevation-a.elevation);
   const dir=diff>0?'往上':diff<0?'往下':'同高程';
   const cls=diff>0?'up':diff<0?'down':'same';
-  box.innerHTML=`
-    從 <strong>${esc(a.name)}</strong>（FL ${signFmt(a.elevation)}）<br>
-    到 <strong>${esc(b.name)}</strong>（FL ${signFmt(b.elevation)}）<br>
-    ${signFmt(b.elevation)} - (${signFmt(a.elevation)}) = <strong>${fmt(Math.abs(diff))} cm</strong>
-    <div class="big ${cls}">${dir} ${fmt(Math.abs(diff))} cm</div>`;
+  box.innerHTML=
+    `從 <strong class="c-${a.kind}">${esc(a.name)}</strong>（FL ${signFmt(a.elevation)}）<br>`+
+    `到 <strong class="c-${b.kind}">${esc(b.name)}</strong>（FL ${signFmt(b.elevation)}）<br>`+
+    `${signFmt(b.elevation)} − (${signFmt(a.elevation)}) = <strong>${fmt(diff)} cm</strong>`+
+    `<div class="big ${cls}">${dir} ${fmt(Math.abs(diff))} cm</div>`;
 }
 
-$('#finishThickness').addEventListener('input',calculate);
-$('#applyWindowShift').addEventListener('change',calculate);
+/* ---------- 匯出 ---------- */
+function tableRows(){
+  const head=['名稱','類型','FL 高程','與下一列差','來源'];
+  const rows=levelsCache.map((x,i)=>[
+    x.name, x.type, signFmt(x.elevation),
+    i<levelsCache.length-1 ? fmt(r2(x.elevation-levelsCache[i+1].elevation)) : '',
+    x.source
+  ]);
+  return [head,...rows];
+}
+$('#copyBtn').addEventListener('click', async ()=>{
+  const txt=tableRows().map(r=>r.join('\t')).join('\n');
+  try{ await navigator.clipboard.writeText(txt); toast('已複製總表'); }
+  catch(e){
+    const ta=document.createElement('textarea');
+    ta.value=txt; document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); toast('已複製總表'); }catch(_){ toast('複製失敗，請手動選取'); }
+    ta.remove();
+  }
+});
+$('#csvBtn').addEventListener('click', ()=>{
+  const csv='﻿'+tableRows().map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+  const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  const a=document.createElement('a');
+  const d=new Date(), p=n=>String(n).padStart(2,'0');
+  a.href=url; a.download=`高程總表_${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}.csv`;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+$('#printBtn').addEventListener('click', ()=>window.print());
 
-$('#addPointBtn').addEventListener('click',()=>{
-  state.points.push({id:makeId(),name:'新高程',value:0});
-  renderInputs();
-});
-$('#addDimBtn').addEventListener('click',()=>{
-  state.dims.push({id:makeId(),name:'新尺寸',value:0,startName:state.points[0]?.name||'',direction:'up'});
-  renderInputs();
-});
-$('#resetBtn').addEventListener('click',()=>{
-  state={
-    finishThickness:0,
-    applyWindowShift:'shiftBoth',
-    points:[
-      {id:makeId(),name:'結構完成面',value:-6},
-      {id:makeId(),name:'增築完成面',value:26.5},
-      {id:makeId(),name:'台度',value:91.8},
-      {id:makeId(),name:'結構1.5米線',value:150}
-    ],
-    dims:[{id:makeId(),name:'窗高',value:174,startName:'台度',direction:'up'}]
-  };
-  renderInputs();
-});
-
-renderInputs();
+/* ---------- 啟動 ---------- */
+load();
+baseline=snap();
+setView(ui.view);
+renderAll();
+updateUndoBtns();
+window.addEventListener('beforeunload',()=>{ clearTimeout(saveTimer); try{ localStorage.setItem(STORE_KEY, JSON.stringify({state, ui:{view:ui.view}})); }catch(e){} });
 
 let resizeTimer;
-window.addEventListener('resize',()=>{
-  clearTimeout(resizeTimer);
-  resizeTimer=setTimeout(calculate,120);
-});
+const redraw=()=>{ clearTimeout(resizeTimer); resizeTimer=setTimeout(()=>renderDiagram(levelsCache),100); };
+window.addEventListener('resize',redraw);
+if(window.ResizeObserver) new ResizeObserver(redraw).observe($('#diagram').parentElement);
+if(window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>renderDiagram(levelsCache));
 </script>
 </body>
 </html>
