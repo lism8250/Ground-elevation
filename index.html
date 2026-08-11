@@ -104,9 +104,9 @@ th{background:#fafafa;color:#4b5563}
   #resetBtn{font-size:12px;min-height:36px;padding:6px 8px}
   .app{
     height:calc(100vh - 58px);
-    padding:6px;
-    grid-template-columns:42% 58%;
-    gap:6px;
+    padding:4px;
+    grid-template-columns:54% 46%;
+    gap:4px;
     overflow:hidden;
   }
   .left-sticky{
@@ -120,11 +120,16 @@ th{background:#fafafa;color:#4b5563}
     gap:6px;
     padding-right:0;
   }
-  .panel-head{padding:8px}
+  .panel-head{padding:6px 7px}
   .panel-head h2{font-size:13px}
-  .diagram-wrap{padding:4px}
-  .legend{padding:0 6px 6px;gap:5px;font-size:9px}
-  .dot{width:7px;height:7px}
+  .diagram-wrap{padding:2px;flex:1}
+  .legend{padding:0 4px 4px;gap:4px;font-size:8px}
+  .dot{width:6px;height:6px}
+
+  #diagram{
+    width:100%;
+    height:100%;
+  }
   .section{padding:8px}
   .section h2{font-size:13px}
   .help{font-size:10px;line-height:1.4}
@@ -527,28 +532,39 @@ function renderDiagram(levels){
   const svg=$('#diagram'); svg.innerHTML='';
   if(!levels.length) return;
 
-  const W=560,H=760,padTop=54,padBottom=54;
+  const mobile = window.matchMedia('(max-width:760px)').matches;
+  const W=mobile ? 430 : 560;
+  const H=760, padTop=48, padBottom=48;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
   const max=levels[0].elevation,min=levels[levels.length-1].elevation;
   const span=Math.max(1,max-min);
   const yOf=e=>padTop+((max-e)/span)*(H-padTop-padBottom);
 
-  // 中央基準軸
-  svg.appendChild(svgEl('line',{x1:85,y1:35,x2:85,y2:H-35,stroke:'#9ca3af','stroke-width':'2'}));
+  const axisX = mobile ? 34 : 85;
+  const lineEnd = mobile ? 405 : 510;
+  const labelX = mobile ? 45 : 98;
+  const measureX = mobile ? 330 : 455;
+  const measureTextX = mobile ? 340 : 467;
+  const nameSize = mobile ? 21 : 16;
+  const elevSize = mobile ? 18 : 14;
+  const diffSize = mobile ? 16 : 13;
+
+  svg.appendChild(svgEl('line',{x1:axisX,y1:28,x2:axisX,y2:H-28,stroke:'#9ca3af','stroke-width':mobile?'3':'2'}));
 
   levels.forEach((x,i)=>{
     const y=yOf(x.elevation);
     const color=colorFor(x.kind);
-    svg.appendChild(svgEl('line',{x1:85,y1:y,x2:510,y2:y,stroke:color,'stroke-width':x.kind==='ref'||x.kind==='sill'?4:3}));
-    svg.appendChild(svgEl('circle',{cx:85,cy:y,r:6,fill:color}));
-    svg.appendChild(svgEl('text',{x:98,y:y-8,fill:color,'font-size':'16','font-weight':'700'},x.name));
-    svg.appendChild(svgEl('text',{x:98,y:y+15,fill:'#374151','font-size':'14'},`FL ${signFmt(x.elevation)}`));
+    svg.appendChild(svgEl('line',{x1:axisX,y1:y,x2:lineEnd,y2:y,stroke:color,'stroke-width':x.kind==='ref'||x.kind==='sill'?(mobile?6:4):(mobile?4:3)}));
+    svg.appendChild(svgEl('circle',{cx:axisX,cy:y,r:mobile?8:6,fill:color}));
+    svg.appendChild(svgEl('text',{x:labelX,y:y-10,fill:color,'font-size':nameSize,'font-weight':'700'},x.name));
+    svg.appendChild(svgEl('text',{x:labelX,y:y+18,fill:'#374151','font-size':elevSize,'font-weight':mobile?'600':'400'},`FL ${signFmt(x.elevation)}`));
 
     if(i<levels.length-1){
       const y2=yOf(levels[i+1].elevation);
       const mid=(y+y2)/2;
       const diff=x.elevation-levels[i+1].elevation;
-      svg.appendChild(svgEl('line',{x1:455,y1:y+6,x2:455,y2:y2-6,stroke:'#9ca3af','stroke-width':'1.5','stroke-dasharray':'4 4'}));
-      svg.appendChild(svgEl('text',{x:467,y:mid+5,fill:'#4b5563','font-size':'13'},`${fmt(diff)} cm`));
+      svg.appendChild(svgEl('line',{x1:measureX,y1:y+8,x2:measureX,y2:y2-8,stroke:'#9ca3af','stroke-width':mobile?'2':'1.5','stroke-dasharray':'5 5'}));
+      svg.appendChild(svgEl('text',{x:measureTextX,y:mid+5,fill:'#374151','font-size':diffSize,'font-weight':mobile?'600':'400'},`${fmt(diff)} cm`));
     }
   });
 }
@@ -608,6 +624,12 @@ $('#resetBtn').addEventListener('click',()=>{
 });
 
 renderInputs();
+
+let resizeTimer;
+window.addEventListener('resize',()=>{
+  clearTimeout(resizeTimer);
+  resizeTimer=setTimeout(calculate,120);
+});
 </script>
 </body>
 </html>
